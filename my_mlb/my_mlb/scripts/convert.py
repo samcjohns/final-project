@@ -140,15 +140,12 @@ def create_stored_procedures():
          END
     """)
 
-    # get_player_positions(IN player_ids TEXT)
-    # Have to pass player IDs as a comma-separated string
-    cursor.execute("DROP PROCEDURE IF EXISTS get_player_positions")
+    # add_postions()
+    cursor.execute("DROP PROCEDURE IF EXISTS add_positions")
     cursor.execute("""
-        CREATE PROCEDURE get_player_positions(IN player_ids TEXT)
+        CREATE PROCEDURE add_positions()
         BEGIN
-            SELECT DISTINCT playerID, POS
-            FROM fielding
-            WHERE FIND_IN_SET(playerID, player_ids) > 0;
+            SELECT DISTINCT playerID, POS FROM fielding;
         END
     """)
 
@@ -179,16 +176,17 @@ def add_positions(players):
     # Connect to original database
     conn = connect_to_original_db()
     cursor = conn.cursor(dictionary=True)
+
+    cursor.callproc('add_positions')
     
-    # Query to get positions for each player
-    # Pass player IDs as a comma-separated string to the stored procedure
-    player_id_str = ','.join(players.keys())
-    cursor.callproc('get_player_positions', [player_id_str])
-    
-    # Add positions to each player
+    # Only add positions for players we've already created
+    # This is more inefficient than the old method, but it allows me 
+    # to use a stored procedure and filter in Python instead of in SQL
     for result in cursor.stored_results():
         for row in result.fetchall():
-            player = players[row['playerID']]
+            player = players.get(row['playerID'])
+            if player is None:
+                continue
             try:
                 position = Position.objects.get(position_code=row['POS'].strip())
                 player.positions.add(position)
