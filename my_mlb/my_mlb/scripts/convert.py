@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'my_mlb.settings')
 django.setup()
 
-from mlb_data.models import Player, Position, PlayerSeason, BattingStats, FieldingStats, PitchingStats, CatchingStats
+from mlb_data.models import Player, Position, PlayerSeason, BattingStats, FieldingStats, PitchingStats, CatchingStats, Team, TeamSeason
 
 def connect_to_original_db():
     return mysql.connector.connect(
@@ -347,9 +347,78 @@ def add_pitching_stats(players):
     cursor.close()
     conn.close()
 
+# [Sam Johns] Milestone 1
+def retrieve_teams_and_seasons():
+    # Connect to original database
+    conn = connect_to_original_db()
+    cursor = conn.cursor(dictionary=True)  # Returns results as dictionaries
+
+    teams = {}
+    # Query to get all teams
+    cursor.execute("""
+        SELECT  team_id,
+                team_code,
+                name
+         FROM teams
+    """)
+
+    # Iterate through results and create Team instances
+    for row in cursor.fetchall():
+        # Convert string dates to Python date objects, handling NULL values
+        team_id = row['team_id']
+        team_code = row['team_code']
+        name = row['name']
+
+        # If the team_id or name is non-existent, skip.
+        if (team_id is None or not team_id or
+            name is None or not name):
+            continue
+        
+        # Create new Team instance
+        team = Team.objects.create(
+            team_id=team_id,
+            team_code=team_code,
+            name=name
+        )
+        teams[team_id] = team
+        print(f"Created team: {team.name}")
+    
+    cursor.close()
+    conn.close()
+
+    return teams
+
+def add_team_seasons(teams):
+    # Connect to original database
+    conn = connect_to_original_db()
+    cursor = conn.cursor(dictionary=True)
+
+    # Query to get all team seasons
+    cursor.execute("""
+        SELECT team_id, year
+        FROM team_seasons
+    """)
+
+    for row in cursor.fetchall():
+        team_id = row['team_id']
+        year = row['year']
+        team = teams.get(team_id)
+        if team is None:
+            continue
+        TeamSeason.objects.create(
+            team=team,
+            year=year
+        )
+        print(f"Added season {year} for team {team.name}")
+
+    cursor.close()
+    conn.close()
+
 # Main function
 if __name__ == "__main__":
     start_time = time.time()
+
+    teams = retrieve_teams_and_seasons()
 
     players = retrieve_players()
     add_seasons(players)

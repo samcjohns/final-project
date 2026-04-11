@@ -60,9 +60,6 @@ class TeamSeason(models.Model):
     attendance = models.IntegerField(null=True)
     bpf = models.IntegerField()
     ppf = models.IntegerField()
-    team_id_br = models.CharField(max_length=3)
-    team_id_lahman45 = models.CharField(max_length=3)
-    team_id_retro = models.CharField(max_length=3)
     class Meta:
         db_table = "team_season"
         unique_together = ('team', 'year', 'lg_id')
