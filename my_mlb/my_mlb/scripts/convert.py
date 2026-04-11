@@ -140,6 +140,18 @@ def create_stored_procedures():
          END
     """)
 
+    # get_player_positions(IN player_ids TEXT)
+    # Have to pass player IDs as a comma-separated string
+    cursor.execute("DROP PROCEDURE IF EXISTS get_player_positions")
+    cursor.execute("""
+        CREATE PROCEDURE get_player_positions(IN player_ids TEXT)
+        BEGIN
+            SELECT DISTINCT playerID, POS
+            FROM fielding
+            WHERE FIND_IN_SET(playerID, player_ids) > 0;
+        END
+    """)
+
     conn.commit()
     cursor.close()
     conn.close()
@@ -169,21 +181,20 @@ def add_positions(players):
     cursor = conn.cursor(dictionary=True)
     
     # Query to get positions for each player
-    cursor.execute("""
-        SELECT DISTINCT playerID, POS 
-        FROM fielding 
-        WHERE playerID IN (%s)
-    """ % ','.join(['%s'] * len(players)), list(players.keys()))
+    # Pass player IDs as a comma-separated string to the stored procedure
+    player_id_str = ','.join(players.keys())
+    cursor.callproc('get_player_positions', [player_id_str])
     
     # Add positions to each player
-    for row in cursor.fetchall():
-        player = players[row['playerID']]
-        try:
-            position = Position.objects.get(position_code=row['POS'].strip())
-            player.positions.add(position)
-            print(f"Added position {position.position_code} to {player.name}")
-        except Position.DoesNotExist:
-            print(f"Position {row['POS']} not found for player {player.name}")
+    for result in cursor.stored_results():
+        for row in result.fetchall():
+            player = players[row['playerID']]
+            try:
+                position = Position.objects.get(position_code=row['POS'].strip())
+                player.positions.add(position)
+                print(f"Added position {position.position_code} to {player.name}")
+            except Position.DoesNotExist:
+                print(f"Position {row['POS']} not found for player {player.name}")
     
     cursor.close()
     conn.close()
