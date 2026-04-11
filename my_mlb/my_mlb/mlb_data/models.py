@@ -5,16 +5,7 @@ class Position(models.Model):
     class Meta:
         db_table = "position"
 
-# [Sam Johns] Milestone 1: Added Team, Teamseason, and Franchise models
-class Franchise(models.Model):
-    franchise_id = models.CharField(max_length=3, primary_key=True)
-    franchise_name = models.CharField(max_length=33)
-    active = models.CharField(max_length=2)
-    na_assoc = models.CharField(max_length=3, null=True)
-    class Meta:
-        db_table = "franchise"
-
-
+# [Sam Johns] Milestone 1: Added Team and Teamseason models
 class Team(models.Model):
     team_id = models.AutoField(primary_key=True)
     team_code = models.CharField(max_length=3, unique=True)
@@ -26,7 +17,6 @@ class Team(models.Model):
 class TeamSeason(models.Model):
     id = models.AutoField(primary_key=True)
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='seasons')
-    franchise = models.ForeignKey(Franchise, on_delete=models.CASCADE, related_name='team_seasons')
     year = models.IntegerField()
     lg_id = models.CharField(max_length=2)
     div_id = models.CharField(max_length=1, null=True)
