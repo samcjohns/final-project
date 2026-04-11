@@ -55,7 +55,6 @@ class TeamSeason(models.Model):
     errors = models.IntegerField()
     double_plays = models.IntegerField()
     fielding_pct = models.DecimalField(max_digits=5, decimal_places=3)
-    name = models.CharField(max_length=33)
     park = models.CharField(max_length=70, null=True)
     attendance = models.IntegerField(null=True)
     bpf = models.IntegerField()

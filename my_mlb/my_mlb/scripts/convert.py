@@ -193,8 +193,6 @@ def add_seasons(players):
             ps.save()
         print(f"Created player-season: {pid}, {yid}")
 
-        # TODOAdd team_seasons
-
     cursor.close()
     conn.close()
 
@@ -348,77 +346,92 @@ def add_pitching_stats(players):
     conn.close()
 
 # [Sam Johns] Milestone 1
-def retrieve_teams_and_seasons():
-    # Connect to original database
-    conn = connect_to_original_db()
-    cursor = conn.cursor(dictionary=True)  # Returns results as dictionaries
-
-    teams = {}
-    # Query to get all teams
-    cursor.execute("""
-        SELECT  team_id,
-                team_code,
-                name
-         FROM teams
-    """)
-
-    # Iterate through results and create Team instances
-    for row in cursor.fetchall():
-        # Convert string dates to Python date objects, handling NULL values
-        team_id = row['team_id']
-        team_code = row['team_code']
-        name = row['name']
-
-        # If the team_id or name is non-existent, skip.
-        if (team_id is None or not team_id or
-            name is None or not name):
-            continue
-        
-        # Create new Team instance
-        team = Team.objects.create(
-            team_id=team_id,
-            team_code=team_code,
-            name=name
-        )
-        teams[team_id] = team
-        print(f"Created team: {team.name}")
-    
-    cursor.close()
-    conn.close()
-
-    return teams
-
-def add_team_seasons(teams):
-    # Connect to original database
+def retrieve_teams():
     conn = connect_to_original_db()
     cursor = conn.cursor(dictionary=True)
 
-    # Query to get all team seasons
+    # Get the most recent name for each team
     cursor.execute("""
-        SELECT team_id, year
-        FROM team_seasons
+        SELECT teamID, name AS latestName
+        FROM teams t
+        WHERE yearID = (SELECT MAX(yearID) FROM teams WHERE teamID = t.teamID)
+        GROUP BY teamID, name
     """)
+    latest_names = {row['teamID']: row['latestName'] for row in cursor.fetchall()}
 
+    # Get all team season rows
+    cursor.execute("SELECT * FROM teams")
+
+    teams = {}
     for row in cursor.fetchall():
-        team_id = row['team_id']
-        year = row['year']
-        team = teams.get(team_id)
-        if team is None:
-            continue
+        tid = row['teamID']
+
+        # If missing, create Team with most recent name
+        if tid not in teams:
+            teams[tid] = Team.objects.create(
+                team_code=tid,
+                name=latest_names.get(tid, tid)
+            )
+            print(f"Created team: {tid} ({teams[tid].name})")
+
+        # Create a TeamSeason for every row
         TeamSeason.objects.create(
-            team=team,
-            year=year
+            team=teams[tid],
+            year=row['yearID'],
+            lg_id=row['lgID'],
+            div_id=row['divID'],
+            rank=row['teamRank'],
+            games=row['G'],
+            games_home=row['Ghome'],
+            wins=row['W'],
+            losses=row['L'],
+            div_win=row['DivWin'],
+            wc_win=row['WCWin'],
+            lg_win=row['LgWin'],
+            ws_win=row['WSWin'],
+            runs=row['R'],
+            at_bats=row['AB'],
+            hits=row['H'],
+            doubles=row['2B'],
+            triples=row['3B'],
+            home_runs=row['HR'],
+            walks=row['BB'],
+            strikeouts=row['SO'],
+            stolen_bases=row['SB'],
+            caught_stealing=row['CS'],
+            hit_by_pitch=row['HBP'],
+            sacrifice_flies=row['SF'],
+            runs_allowed=row['RA'],
+            earned_runs=row['ER'],
+            era=row['ERA'],
+            complete_games=row['CG'],
+            shutouts=row['SHO'],
+            saves=row['SV'],
+            ip_outs=row['IPouts'],
+            hits_allowed=row['HA'],
+            home_runs_allowed=row['HRA'],
+            walks_allowed=row['BBA'],
+            strikeouts_against=row['SOA'],
+            errors=row['E'],
+            double_plays=row['DP'],
+            fielding_pct=row['FP'],
+            park=row['park'],
+            attendance=row['attendance'],
+            bpf=row['BPF'],
+            ppf=row['PPF']
         )
-        print(f"Added season {year} for team {team.name}")
+        print(f"Created team season: {tid}, {row['yearID']}")
 
     cursor.close()
     conn.close()
+    return teams
 
 # Main function
 if __name__ == "__main__":
     start_time = time.time()
 
-    teams = retrieve_teams_and_seasons()
+    # Retrieve teams first
+    teams = retrieve_teams()
 
     players = retrieve_players()
     add_seasons(players)
