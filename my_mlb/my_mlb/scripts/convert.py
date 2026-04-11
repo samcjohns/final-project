@@ -65,12 +65,21 @@ def create_stored_procedures():
     cursor.execute("""
         CREATE PROCEDURE get_batting_stats()
         BEGIN
-            SELECT playerID, yearID,
-                SUM(AB) as atBats, SUM(H) as hits,
-                SUM(`2B`) as doubles, SUM(`3B`) as triples,
-                -- ... rest of columns
-            FROM batting
-            GROUP BY playerID, yearID;
+            select playerID, yearID,
+            sum(AB) as atBats, 
+            sum(H) as hits, 
+            sum(2B) as doubles,
+            sum(3B) as triples, 
+            sum(HR) as homeRuns,
+            sum(RBI) as runsBattedIn, 
+            sum(SO) as strikeouts,
+            sum(BB) as walks, 
+            sum(HBP) as hitByPitch, 
+            sum(IBB) as intentionalWalks, 
+            sum(SB) as steals, 
+            sum(CS) as stealsAttempted
+            from batting
+            group by playerID, yearID;
         END
     """)
 
@@ -88,7 +97,7 @@ def create_stored_procedures():
                 SUM(CASE WHEN POS = 'C' THEN CS ELSE 0 END) as stealsCaught,
                 MAX(CASE WHEN POS = 'C' THEN 1 ELSE 0 END) as isCatcher
             FROM fielding
-            GROUP BY playerID, yearID
+            GROUP BY playerID, yearID;
         END
     """)
 
@@ -110,7 +119,7 @@ def create_stored_procedures():
                     sum(HBP) as hitBatters, 
                     sum(SV) as saves
             from pitching 
-            group by playerID, yearID
+            group by playerID, yearID;
         END
     """)
 
@@ -136,8 +145,8 @@ def create_stored_procedures():
                     birthCountry, 
                     debut, 
                     finalGame 
-            FROM people
-         END
+            FROM people;
+        END
     """)
 
     # add_postions()
@@ -231,7 +240,7 @@ def retrieve_players():
                                 day=row['birthDay'])
 
             if (row['deathYear'] is None) :
-            death_day = None 
+                death_day = None 
             elif (row['deathMonth'] is None or row['deathDay'] is None) :
                 death_day = datetime(year=row['deathYear'], month=1, day=1)
             else:
@@ -488,6 +497,9 @@ def retrieve_teams():
 # Main function
 if __name__ == "__main__":
     start_time = time.time()
+
+    # store procedures
+    create_stored_procedures()
 
     # Retrieve teams first
     teams = retrieve_teams()
