@@ -143,10 +143,8 @@ def create_stored_procedures():
     cursor.close()
     conn.close()
 
-
-
 def add_positions(players):
-    # First, ensure all positions exist in the new database
+    # Ensure all positions exist in the new database
     positions = {
         'P': 'Pitcher',
         'C': 'Catcher',
@@ -171,9 +169,8 @@ def add_positions(players):
 
     cursor.callproc('add_positions')
     
-    # Only add positions for players we've already created
-    # This is more inefficient than the old method, but it allows me 
-    # to use a stored procedure and filter in Python instead of in SQL
+    # Only add positions for players already created
+    # Grab all and filter in Python
     for result in cursor.stored_results():
         for row in result.fetchall():
             player = players.get(row['playerID'])
@@ -206,7 +203,7 @@ def retrieve_players():
             first_name = row['nameFirst']
             last_name = row['nameLast']
 
-            # If the playerId or name is non-existant, skip.
+            # If the playerId or name doesn't exist, skip.
             if (pid is None or not pid or
                 first_name is None or not first_name or 
                 last_name is None or not last_name) :
@@ -481,7 +478,7 @@ def retrieve_teams():
 if __name__ == "__main__":
     start_time = time.time()
 
-    # store procedures
+    # Store procedures
     create_stored_procedures()
 
     # Retrieve teams first
