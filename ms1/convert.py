@@ -27,8 +27,19 @@ def create_stored_procedures():
     conn = connect_to_original_db()
     cursor = conn.cursor()
 
-    # get_team_data()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_team_data")
+    # Destroy old stored procedures if they exist
+    cursor.execute("""
+        DROP PROCEDURE IF EXISTS get_team_data;
+        DROP PROCEDURE IF EXISTS get_player_season_stats;
+        DROP PROCEDURE IF EXISTS get_batting_stats;
+        DROP PROCEDURE IF EXISTS get_fielding_stats;
+        DROP PROCEDURE IF EXISTS get_pitching_stats;
+        DROP PROCEDURE IF EXISTS retrieve_players;
+        DROP PROCEDURE IF EXISTS add_positions;
+    """)
+
+    # Create stored procedures
+    # Copy from stored_procedures.sql
     cursor.execute("""
         CREATE PROCEDURE get_team_data()
         BEGIN
@@ -42,12 +53,7 @@ def create_stored_procedures():
                 )
                 GROUP BY teamID, name
             ) AS latest ON t.teamID = latest.teamID;
-        END
-    """)
-
-    # get_player_season_stats()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_player_season_stats")
-    cursor.execute("""
+        END;
         CREATE PROCEDURE get_player_season_stats()
         BEGIN
             SELECT b.playerID, b.yearID, b.teamID, b.lgID,
@@ -57,12 +63,7 @@ def create_stored_procedures():
             LEFT JOIN salaries s ON b.playerID = s.playerID 
                 AND b.yearID = s.yearID
             GROUP BY b.playerID, b.yearID, b.teamID, b.lgID;
-        END
-    """)
-
-    # get_batting_stats()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_batting_stats")
-    cursor.execute("""
+        END;
         CREATE PROCEDURE get_batting_stats()
         BEGIN
             select playerID, yearID,
@@ -80,12 +81,7 @@ def create_stored_procedures():
             sum(CS) as stealsAttempted
             from batting
             group by playerID, yearID;
-        END
-    """)
-
-    # get_fielding_stats()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_fielding_stats")
-    cursor.execute("""
+        END;
         CREATE PROCEDURE get_fielding_stats()
         BEGIN
             SELECT playerID, yearID,
@@ -98,12 +94,7 @@ def create_stored_procedures():
                 MAX(CASE WHEN POS = 'C' THEN 1 ELSE 0 END) as isCatcher
             FROM fielding
             GROUP BY playerID, yearID;
-        END
-    """)
-
-    # get_pitching_stats()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_pitching_stats")
-    cursor.execute("""
+        END;
         CREATE PROCEDURE get_pitching_stats()
         BEGIN
             select playerID, yearID,
@@ -120,12 +111,7 @@ def create_stored_procedures():
                     sum(SV) as saves
             from pitching 
             group by playerID, yearID;
-        END
-    """)
-
-    # retrieve_players()
-    cursor.execute("DROP PROCEDURE IF EXISTS retrieve_players")
-    cursor.execute("""
+        END;
         CREATE PROCEDURE retrieve_players()
         BEGIN
             SELECT  playerId, 
@@ -146,16 +132,11 @@ def create_stored_procedures():
                     debut, 
                     finalGame 
             FROM people;
-        END
-    """)
-
-    # add_postions()
-    cursor.execute("DROP PROCEDURE IF EXISTS add_positions")
-    cursor.execute("""
+        END;
         CREATE PROCEDURE add_positions()
         BEGIN
             SELECT DISTINCT playerID, POS FROM fielding;
-        END
+        END;
     """)
 
     conn.commit()
