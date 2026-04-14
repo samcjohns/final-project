@@ -10,4 +10,5 @@
 
 ## Stored Procedures
 
-I created the stored procedures for all queries to the legacy database.
+I created the stored procedures for all queries to the legacy database. 
+The SQL is in stored_procedures.sql, however, it is only a copy of the SQL code I use in convert.py (I do not use the SQL file in my conversion).

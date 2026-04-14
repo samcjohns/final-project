@@ -77,6 +77,7 @@ class Player(models.Model):
     last_game = models.DateField(null=True)
 
     positions = models.ManyToManyField('Position')
+    team_seasons = models.ManyToManyField('TeamSeason', related_name='players')
     class Meta:
         db_table = "player"
         unique_together = ('name', 'birthdate')
