@@ -15,7 +15,8 @@ create table team (
   league varchar(2) not null,
   yearFounded numeric(4,0),
   yearLast numeric(4,0));
-  create table player (
+
+create table player (
   playerId numeric(10,0) IDENTITY(10000,5) primary key,
   name varchar(100) not null,
   givenName varchar(255),
@@ -46,8 +47,10 @@ create table playerposition (
   playerId numeric(10,0),
   position varchar(10),
   primary key(playerId, position),
-  foreign key(playerId) references player on delete cascade);
-  create table playerseason (
+  foreign key(playerId) references player on delete cascade
+);
+
+create table playerseason (
   playerId numeric(10,0) references player on delete cascade,
   year numeric(4,0),
   gamesPlayed numeric(3,0),
