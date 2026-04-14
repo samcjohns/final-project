@@ -27,26 +27,40 @@ def create_stored_procedures():
     conn = connect_to_original_db()
     cursor = conn.cursor()
 
-    # get_team_data()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_team_data")
+    # Destroy old stored procedures if they exist
+    cursor.execute("""
+        DROP PROCEDURE IF EXISTS get_team_data;
+        DROP PROCEDURE IF EXISTS get_player_season_stats;
+        DROP PROCEDURE IF EXISTS get_batting_stats;
+        DROP PROCEDURE IF EXISTS get_fielding_stats;
+        DROP PROCEDURE IF EXISTS get_pitching_stats;
+        DROP PROCEDURE IF EXISTS retrieve_players;
+        DROP PROCEDURE IF EXISTS add_positions;
+    """, multi=True)
+
+    # Create stored procedures
+    # Copy from stored_procedures.sql
     cursor.execute("""
         CREATE PROCEDURE get_team_data()
         BEGIN
-            SELECT t.*, latest.latestName
+            SELECT t.teamID, t.yearID,
+                t.G gamesPlayed, t.W wins, t.L losses,
+                t.teamRank rank, t.attendance,
+                latest.latestName, latest.latestLeague,
+                agg.yearFounded, agg.yearLast
             FROM teams t
-            INNER JOIN (
-                SELECT teamID, name AS latestName
+            JOIN (
+                SELECT teamID, name latestName, lgID latestLeague
                 FROM teams t2
-                WHERE yearID = (
-                    SELECT MAX(yearID) FROM teams WHERE teamID = t2.teamID
-                )
-                GROUP BY teamID, name
-            ) AS latest ON t.teamID = latest.teamID;
-        END
+                WHERE yearID = (SELECT MAX(yearID) FROM teams WHERE teamID = t2.teamID)
+                GROUP BY teamID, name, lgID
+            ) latest ON t.teamID = latest.teamID
+            JOIN (
+                SELECT teamID, MIN(yearID) yearFounded, MAX(yearID) yearLast
+                FROM teams GROUP BY teamID
+            ) agg ON t.teamID = agg.teamID;
+        END;
     """)
-
-    # get_player_season_stats()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_player_season_stats")
     cursor.execute("""
         CREATE PROCEDURE get_player_season_stats()
         BEGIN
@@ -57,11 +71,8 @@ def create_stored_procedures():
             LEFT JOIN salaries s ON b.playerID = s.playerID 
                 AND b.yearID = s.yearID
             GROUP BY b.playerID, b.yearID, b.teamID, b.lgID;
-        END
+        END;
     """)
-
-    # get_batting_stats()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_batting_stats")
     cursor.execute("""
         CREATE PROCEDURE get_batting_stats()
         BEGIN
@@ -80,11 +91,8 @@ def create_stored_procedures():
             sum(CS) as stealsAttempted
             from batting
             group by playerID, yearID;
-        END
+        END;
     """)
-
-    # get_fielding_stats()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_fielding_stats")
     cursor.execute("""
         CREATE PROCEDURE get_fielding_stats()
         BEGIN
@@ -98,11 +106,8 @@ def create_stored_procedures():
                 MAX(CASE WHEN POS = 'C' THEN 1 ELSE 0 END) as isCatcher
             FROM fielding
             GROUP BY playerID, yearID;
-        END
+        END;
     """)
-
-    # get_pitching_stats()
-    cursor.execute("DROP PROCEDURE IF EXISTS get_pitching_stats")
     cursor.execute("""
         CREATE PROCEDURE get_pitching_stats()
         BEGIN
@@ -120,11 +125,8 @@ def create_stored_procedures():
                     sum(SV) as saves
             from pitching 
             group by playerID, yearID;
-        END
+        END;
     """)
-
-    # retrieve_players()
-    cursor.execute("DROP PROCEDURE IF EXISTS retrieve_players")
     cursor.execute("""
         CREATE PROCEDURE retrieve_players()
         BEGIN
@@ -146,26 +148,21 @@ def create_stored_procedures():
                     debut, 
                     finalGame 
             FROM people;
-        END
+        END;
     """)
-
-    # add_postions()
-    cursor.execute("DROP PROCEDURE IF EXISTS add_positions")
     cursor.execute("""
         CREATE PROCEDURE add_positions()
         BEGIN
             SELECT DISTINCT playerID, POS FROM fielding;
-        END
+        END;
     """)
 
     conn.commit()
     cursor.close()
     conn.close()
 
-
-
 def add_positions(players):
-    # First, ensure all positions exist in the new database
+    # Ensure all positions exist in the new database
     positions = {
         'P': 'Pitcher',
         'C': 'Catcher',
@@ -190,9 +187,8 @@ def add_positions(players):
 
     cursor.callproc('add_positions')
     
-    # Only add positions for players we've already created
-    # This is more inefficient than the old method, but it allows me 
-    # to use a stored procedure and filter in Python instead of in SQL
+    # Only add positions for players already created
+    # Grab all and filter in Python
     for result in cursor.stored_results():
         for row in result.fetchall():
             player = players.get(row['playerID'])
@@ -225,7 +221,7 @@ def retrieve_players():
             first_name = row['nameFirst']
             last_name = row['nameLast']
 
-            # If the playerId or name is non-existant, skip.
+            # If the playerId or name doesn't exist, skip.
             if (pid is None or not pid or
                 first_name is None or not first_name or 
                 last_name is None or not last_name) :
@@ -277,7 +273,7 @@ def retrieve_players():
 
     return players
 
-def add_seasons(players):
+def add_seasons(players, team_seasons):
     conn = connect_to_original_db()
     cursor = conn.cursor(dictionary=True)
 
@@ -306,6 +302,11 @@ def add_seasons(players):
                 if row['totalSalary']:  # Only update salary if it exists
                     ps.salary += row['totalSalary'] 
                 ps.save()
+
+            ts = team_seasons.get((tid, yid))
+            if ts is not None:
+                p.team_seasons.add(ts)
+
             print(f"Created player-season: {pid}, {yid}")
 
     cursor.close()
@@ -425,89 +426,47 @@ def add_pitching_stats(players):
 def retrieve_teams():
     conn = connect_to_original_db()
     cursor = conn.cursor(dictionary=True)
-
-    # Use stored procedure
-    # Gets all team info and most recent name
     cursor.callproc('get_team_data')
 
-    # Build teams and seasons
     teams = {}
+    team_seasons = {}
     for result in cursor.stored_results():
         for row in result.fetchall():
             tid = row['teamID']
-
-            # If missing, create Team with most recent name
             if tid not in teams:
                 teams[tid] = Team.objects.create(
-                    team_code=tid,
-                    name=row['latestName']
+                    name=row['latestName'],
+                    league=row['latestLeague'],
+                    yearFounded=row['yearFounded'],
+                    yearLast=row['yearLast']
                 )
-                print(f"Created team: {tid} ({teams[tid].name})")
-
-            # Create a TeamSeason for every row
-            TeamSeason.objects.create(
+            ts = TeamSeason.objects.create(
                 team=teams[tid],
                 year=row['yearID'],
-                lg_id=row['lgID'],
-                div_id=row['divID'],
-                rank=row['teamRank'],
-                games=row['G'],
-                games_home=row['Ghome'],
-                wins=row['W'],
-                losses=row['L'],
-                div_win=row['DivWin'],
-                wc_win=row['WCWin'],
-                lg_win=row['LgWin'],
-                ws_win=row['WSWin'],
-                runs=row['R'],
-                at_bats=row['AB'],
-                hits=row['H'],
-                doubles=row['2B'],
-                triples=row['3B'],
-                home_runs=row['HR'],
-                walks=row['BB'],
-                strikeouts=row['SO'],
-                stolen_bases=row['SB'],
-                caught_stealing=row['CS'],
-                hit_by_pitch=row['HBP'],
-                sacrifice_flies=row['SF'],
-                runs_allowed=row['RA'],
-                earned_runs=row['ER'],
-                era=row['ERA'],
-                complete_games=row['CG'],
-                shutouts=row['SHO'],
-                saves=row['SV'],
-                ip_outs=row['IPouts'],
-                hits_allowed=row['HA'],
-                home_runs_allowed=row['HRA'],
-                walks_allowed=row['BBA'],
-                strikeouts_against=row['SOA'],
-                errors=row['E'],
-                double_plays=row['DP'],
-                fielding_pct=row['FP'],
-                park=row['park'],
-                attendance=row['attendance'],
-                bpf=row['BPF'],
-                ppf=row['PPF']
+                gamesPlayed=row['gamesPlayed'],
+                wins=row['wins'],
+                losses=row['losses'],
+                rank=row['rank'],
+                totalAttendance=row['attendance']
             )
-            print(f"Created team season: {tid}, {row['yearID']}")
+            team_seasons[(tid, row['yearID'])] = ts
 
     cursor.close()
     conn.close()
-    return teams
+    return teams, team_seasons
 
 # Main function
 if __name__ == "__main__":
     start_time = time.time()
 
-    # store procedures
+    # Store procedures
     create_stored_procedures()
 
     # Retrieve teams first
-    teams = retrieve_teams()
+    teams, team_seasons = retrieve_teams()
 
     players = retrieve_players()
-    add_seasons(players)
+    add_seasons(players, team_seasons)
     add_batting_stats(players)
     add_fielding_stats(players)
     add_pitching_stats(players)

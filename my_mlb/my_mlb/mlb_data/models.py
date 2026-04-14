@@ -1,68 +1,34 @@
 from django.db import models
 
-class Position(models.Model):
-    position_code = models.CharField(max_length=10, primary_key=True)
-    class Meta:
-        db_table = "position"
-
 # [Sam Johns] Milestone 1: Added Team and Teamseason models
 class Team(models.Model):
-    team_id = models.AutoField(primary_key=True)
-    team_code = models.CharField(max_length=3, unique=True)
-    name = models.CharField(max_length=33)
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50, null=False)
+    league = models.CharField(max_length=2, null=False)
+    yearFounded = models.IntegerField(null=True) 
+    yearLast = models.IntegerField(null=True) 
+
     class Meta:
         db_table = "team"
-
 
 class TeamSeason(models.Model):
     id = models.AutoField(primary_key=True)
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='seasons')
-    year = models.IntegerField()
-    lg_id = models.CharField(max_length=2)
-    div_id = models.CharField(max_length=1, null=True)
+    year = models.IntegerField() 
+    gamesPlayed = models.IntegerField()
+    wins = models.IntegerField() 
+    losses = models.IntegerField() 
     rank = models.IntegerField()
-    games = models.IntegerField()
-    games_home = models.IntegerField(null=True)
-    wins = models.IntegerField()
-    losses = models.IntegerField()
-    div_win = models.CharField(max_length=1, null=True)
-    wc_win = models.CharField(max_length=1, null=True)
-    lg_win = models.CharField(max_length=1, null=True)
-    ws_win = models.CharField(max_length=1, null=True)
-    runs = models.IntegerField()
-    at_bats = models.IntegerField()
-    hits = models.IntegerField()
-    doubles = models.IntegerField()
-    triples = models.IntegerField()
-    home_runs = models.IntegerField()
-    walks = models.IntegerField()
-    strikeouts = models.IntegerField(null=True)
-    stolen_bases = models.IntegerField(null=True)
-    caught_stealing = models.IntegerField(null=True)
-    hit_by_pitch = models.IntegerField(null=True)
-    sacrifice_flies = models.IntegerField(null=True)
-    runs_allowed = models.IntegerField()
-    earned_runs = models.IntegerField()
-    era = models.DecimalField(max_digits=4, decimal_places=2)
-    complete_games = models.IntegerField()
-    shutouts = models.IntegerField()
-    saves = models.IntegerField()
-    ip_outs = models.IntegerField()
-    hits_allowed = models.IntegerField()
-    home_runs_allowed = models.IntegerField()
-    walks_allowed = models.IntegerField()
-    strikeouts_against = models.IntegerField()
-    errors = models.IntegerField()
-    double_plays = models.IntegerField()
-    fielding_pct = models.DecimalField(max_digits=5, decimal_places=3)
-    park = models.CharField(max_length=70, null=True)
-    attendance = models.IntegerField(null=True)
-    bpf = models.IntegerField()
-    ppf = models.IntegerField()
+    totalAttendance = models.IntegerField(null=True)
+
     class Meta:
         db_table = "team_season"
-        unique_together = ('team', 'year', 'lg_id')
+        unique_together = ('team', 'year')
 
+class Position(models.Model):
+    position_code = models.CharField(max_length=10, primary_key=True)
+    class Meta:
+        db_table = "position"
 
 class Player(models.Model):
     player_id = models.AutoField(primary_key=True)
@@ -79,6 +45,8 @@ class Player(models.Model):
     last_game = models.DateField(null=True)
 
     positions = models.ManyToManyField('Position')
+    team_seasons = models.ManyToManyField('TeamSeason', related_name='players')
+
     class Meta:
         db_table = "player"
         unique_together = ('name', 'birthdate')
