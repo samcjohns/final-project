@@ -14,7 +14,6 @@ class Team(models.Model):
 class TeamSeason(models.Model):
     id = models.AutoField(primary_key=True)
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='seasons')
-
     year = models.IntegerField() 
     gamesPlayed = models.IntegerField()
     wins = models.IntegerField() 
