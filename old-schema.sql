@@ -1,260 +1,122 @@
-CREATE TABLE parks(
-   ID        INTEGER  NOT NULL PRIMARY KEY 
-  ,parkalias VARCHAR(85)
-  ,parkkey   VARCHAR(5) NOT NULL
-  ,parkname  VARCHAR(38) NOT NULL
-  ,city      VARCHAR(16) NOT NULL
-  ,state     VARCHAR(15)
-  ,country   VARCHAR(2) NOT NULL
+drop table teamseasonplayer;
+drop table battingstats;
+drop table catchingstats;
+drop table fieldingstats;
+drop table pitchingstats;
+drop table playerseason;
+drop table playerposition;
+drop table player;
+drop table teamseason;
+drop table team;
+
+create table team (
+  teamId numeric(10,0) IDENTITY(10000,5) primary key,
+  name varchar(50) not null,
+  league varchar(2) not null,
+  yearFounded numeric(4,0),
+  yearLast numeric(4,0));
+  create table player (
+  playerId numeric(10,0) IDENTITY(10000,5) primary key,
+  name varchar(100) not null,
+  givenName varchar(255),
+  birthDay date,
+  deathDay date,
+  battingHand varchar(1) check (battingHand in ('L', 'R', 'S')),
+  throwingHand varchar(1) check (throwingHand in ('L', 'R')),
+  birthCity varchar(50),
+  birthState varchar(50),
+  birthCountry varchar(50),
+  firstGame date,
+  lastGame date,
+  CONSTRAINT uniqueConstraint_Player UNIQUE (name, birthDay, deathDay)
 );
 
-CREATE TABLE teamFranchises(
-   franchID   VARCHAR(3) NOT NULL PRIMARY KEY
-  ,franchName VARCHAR(33) NOT NULL
-  ,active     VARCHAR(2) NOT NULL
-  ,NAassoc    VARCHAR(3)
+create table teamseason (
+  teamId numeric(10,0) references team on delete cascade,
+  year numeric(4,0),
+  gamesPlayed numeric(3,0),
+  wins numeric(4,0),
+  losses numeric(4,0),
+  rank numeric(2,0),
+  totalAttendance numeric(7,0),
+  primary key (teamId, year)
 );
 
-CREATE TABLE teams(
-   yearID         INTEGER  NOT NULL
-  ,lgID           VARCHAR(2) NOT NULL
-  ,teamID         VARCHAR(3) NOT NULL
-  ,franchID       VARCHAR(3) NOT NULL
-  ,divID          VARCHAR(1)
-  ,teamRank       INTEGER  NOT NULL
-  ,G              INTEGER  NOT NULL
-  ,Ghome          INTEGER 
-  ,W              INTEGER  NOT NULL
-  ,L              INTEGER  NOT NULL
-  ,DivWin         VARCHAR(1)
-  ,WCWin          VARCHAR(1)
-  ,LgWin          VARCHAR(1)
-  ,WSWin          VARCHAR(1)
-  ,R              INTEGER  NOT NULL
-  ,AB             INTEGER  NOT NULL
-  ,H              INTEGER  NOT NULL
-  ,2B             INTEGER  NOT NULL
-  ,3B             INTEGER  NOT NULL
-  ,HR             INTEGER  NOT NULL
-  ,BB             INTEGER  NOT NULL
-  ,SO             INTEGER 
-  ,SB             INTEGER 
-  ,CS             INTEGER 
-  ,HBP            INTEGER 
-  ,SF             INTEGER 
-  ,RA             INTEGER  NOT NULL
-  ,ER             INTEGER  NOT NULL
-  ,ERA            NUMERIC(4,2) NOT NULL
-  ,CG             INTEGER  NOT NULL
-  ,SHO            INTEGER  NOT NULL
-  ,SV             INTEGER  NOT NULL
-  ,IPouts         INTEGER  NOT NULL
-  ,HA             INTEGER  NOT NULL
-  ,HRA            INTEGER  NOT NULL
-  ,BBA            INTEGER  NOT NULL
-  ,SOA            INTEGER  NOT NULL
-  ,E              INTEGER  NOT NULL
-  ,DP             INTEGER  NOT NULL
-  ,FP             NUMERIC(5,3) NOT NULL
-  ,name           VARCHAR(33) NOT NULL
-  ,park           VARCHAR(70)
-  ,attendance     INTEGER 
-  ,BPF            INTEGER  NOT NULL
-  ,PPF            INTEGER  NOT NULL
-  ,teamIDBR       VARCHAR(3) NOT NULL
-  ,teamIDlahman45 VARCHAR(3) NOT NULL
-  ,teamIDretro    VARCHAR(3) NOT NULL
-  ,PRIMARY KEY(yearID,lgID,teamID)
+create table playerposition (
+  playerId numeric(10,0),
+  position varchar(10),
+  primary key(playerId, position),
+  foreign key(playerId) references player on delete cascade);
+  create table playerseason (
+  playerId numeric(10,0) references player on delete cascade,
+  year numeric(4,0),
+  gamesPlayed numeric(3,0),
+  salary numeric(12,2),
+  primary key (playerId, year)
 );
 
-CREATE TABLE managers(
-   playerID VARCHAR(9) NOT NULL
-  ,yearID   INTEGER  NOT NULL
-  ,teamID   VARCHAR(3) NOT NULL
-  ,lgID     VARCHAR(2) NOT NULL
-  ,inseason INTEGER  NOT NULL
-  ,G        INTEGER  NOT NULL
-  ,W        INTEGER  NOT NULL
-  ,L        INTEGER  NOT NULL
-  ,teamRank     INTEGER  NOT NULL
-  ,plyrMgr  VARCHAR(1) NOT NULL
-  ,PRIMARY KEY(playerID, yearID, teamID, inseason)
+create table battingstats (
+  playerId numeric(10,0),
+  year numeric(4,0),
+  atBats numeric(4,0),
+  hits numeric(4,0),
+  doubles numeric(4,0),
+  triples numeric(4,0),
+  homeRuns numeric(4,0),
+  runsBattedIn numeric(4,0),
+  strikeouts numeric(4,0),
+  walks numeric(4,0),
+  hitByPitch numeric(4,0),
+  intentionalWalks numeric(4,0),
+  steals numeric(4,0),
+  stealsAttempted numeric(4,0),
+  primary key(playerId, year),
+  foreign key(playerId, year) references playerseason on delete cascade
 );
 
-CREATE TABLE people(
-   ID           INTEGER  NOT NULL PRIMARY KEY 
-  ,playerID     VARCHAR(9) NOT NULL
-  ,birthYear    INTEGER 
-  ,birthMonth   INTEGER 
-  ,birthDay     INTEGER 
-  ,birthCity    VARCHAR(25)
-  ,birthCountry VARCHAR(14)
-  ,birthState   VARCHAR(22)
-  ,deathYear    INTEGER 
-  ,deathMonth   INTEGER 
-  ,deathDay     INTEGER 
-  ,deathCountry VARCHAR(15)
-  ,deathState   VARCHAR(20)
-  ,deathCity    VARCHAR(26)
-  ,nameFirst    VARCHAR(14)
-  ,nameLast     VARCHAR(18) NOT NULL
-  ,nameGiven    VARCHAR(43)
-  ,weight       INTEGER 
-  ,height       INTEGER 
-  ,bats         VARCHAR(1)
-  ,throws       VARCHAR(1)
-  ,debut        VARCHAR(10)
-  ,bbrefID      VARCHAR(9)
-  ,finalGame    VARCHAR(10)
-  ,retroID      VARCHAR(8)
+create table catchingstats (
+  playerId numeric(10,0),
+  year numeric(4,0),
+  passedBalls numeric(4,0),
+  wildPitches numeric(4,0),
+  stealsAllowed numeric(4,0),
+  stealsCaught numeric(4,0),
+  primary key(playerId, year),
+  foreign key(playerId, year) references playerseason on delete cascade
 );
 
-CREATE TABLE appearances(
-   yearID    INTEGER  NOT NULL
-  ,teamID    VARCHAR(3) NOT NULL
-  ,lgID      VARCHAR(2) NOT NULL
-  ,playerID  VARCHAR(9) NOT NULL
-  ,G_all     INTEGER  NOT NULL
-  ,GS        INTEGER 
-  ,G_batting INTEGER  NOT NULL
-  ,G_defense INTEGER 
-  ,G_p       INTEGER  NOT NULL
-  ,G_c       INTEGER  NOT NULL
-  ,G_1b      INTEGER  NOT NULL
-  ,G_2b      INTEGER  NOT NULL
-  ,G_3b      INTEGER  NOT NULL
-  ,G_ss      INTEGER  NOT NULL
-  ,G_lf      INTEGER  NOT NULL
-  ,G_cf      INTEGER  NOT NULL
-  ,G_rf      INTEGER  NOT NULL
-  ,G_of      INTEGER  NOT NULL
-  ,G_dh      INTEGER 
-  ,G_ph      INTEGER 
-  ,G_pr      INTEGER 
-  ,PRIMARY KEY(yearID, teamID, playerID)
+create table fieldingstats (
+  playerId numeric(10,0),
+  year numeric(4,0),
+  errors numeric(4,0),
+  putOuts numeric(4,0),
+  primary key(playerId, year),
+  foreign key(playerId, year) references playerseason on delete cascade
 );
 
-CREATE TABLE batting(
-   playerID  VARCHAR(9) NOT NULL
-  ,yearID    INTEGER  NOT NULL
-  ,stint     INTEGER  NOT NULL
-  ,teamID    VARCHAR(3) NOT NULL
-  ,lgID      VARCHAR(2) NOT NULL
-  ,G         INTEGER  NOT NULL
-  ,G_batting INTEGER 
-  ,AB        INTEGER  NOT NULL
-  ,R         INTEGER  NOT NULL
-  ,H         INTEGER  NOT NULL
-  ,2B        INTEGER  NOT NULL
-  ,3B        INTEGER  NOT NULL
-  ,HR        INTEGER  NOT NULL
-  ,RBI       INTEGER 
-  ,SB        INTEGER 
-  ,CS        INTEGER 
-  ,BB        INTEGER  NOT NULL
-  ,SO        INTEGER 
-  ,IBB       INTEGER 
-  ,HBP       INTEGER 
-  ,SH        INTEGER 
-  ,SF        INTEGER 
-  ,GIDP      INTEGER 
-  ,G_old     VARCHAR(30)
-  ,PRIMARY KEY(playerID, yearID, stint)
+create table pitchingstats (
+  playerId numeric(10,0),
+  year numeric(4,0),
+  outsPitched numeric(4,0),
+  earnedRunsAllowed numeric(4,0),
+  homeRunsAllowed numeric(4,0),
+  strikeouts numeric(4,0),
+  walks numeric(4,0),
+  wins numeric(4,0),
+  losses numeric(4,0),
+  wildPitches numeric(4,0),
+  battersFaced numeric(4,0),
+  hitBatters numeric(4,0),
+  saves numeric(4,0),
+  primary key(playerId, year),
+  foreign key(playerId, year) references playerseason on delete cascade
 );
 
-CREATE TABLE fielding(
-   playerID VARCHAR(9) NOT NULL
-  ,yearID   INTEGER  NOT NULL
-  ,stint    INTEGER  NOT NULL
-  ,teamID   VARCHAR(3) NOT NULL
-  ,lgID     VARCHAR(2) NOT NULL
-  ,POS      VARCHAR(2) NOT NULL
-  ,G        INTEGER  NOT NULL
-  ,GS       INTEGER 
-  ,InnOuts  INTEGER 
-  ,PO       INTEGER  NOT NULL
-  ,A        INTEGER  NOT NULL
-  ,E        INTEGER 
-  ,DP       INTEGER  NOT NULL
-  ,PB       INTEGER 
-  ,WP       INTEGER 
-  ,SB       INTEGER 
-  ,CS       INTEGER 
-  ,ZR       INTEGER
-  ,PRIMARY KEY (playerID, yearID, stint, POS) 
-);
-
-CREATE TABLE fieldingOF(
-   playerID VARCHAR(9) NOT NULL
-  ,yearID   INTEGER  NOT NULL
-  ,stint    INTEGER  NOT NULL
-  ,Glf      INTEGER 
-  ,Gcf      INTEGER 
-  ,Grf      INTEGER
-  ,PRIMARY KEY(playerID, yearID, stint) 
-);
-
-CREATE TABLE fieldingOFsplit(
-   playerID VARCHAR(9) NOT NULL
-  ,yearID   INTEGER  NOT NULL
-  ,stint    INTEGER  NOT NULL
-  ,teamID   VARCHAR(3) NOT NULL
-  ,lgID     VARCHAR(2) NOT NULL
-  ,POS      VARCHAR(2) NOT NULL
-  ,G        INTEGER  NOT NULL
-  ,GS       INTEGER  NOT NULL
-  ,InnOuts  INTEGER  NOT NULL
-  ,PO       INTEGER  NOT NULL
-  ,A        INTEGER  NOT NULL
-  ,E        INTEGER  NOT NULL
-  ,DP       INTEGER  NOT NULL
-  ,PB       VARCHAR(30)
-  ,WP       VARCHAR(30)
-  ,SB       VARCHAR(30)
-  ,CS       VARCHAR(30)
-  ,ZR       VARCHAR(30)
-  ,PRIMARY KEY(playerID, yearID, stint, teamID, POS)
-);
-
-CREATE TABLE pitching(
-   playerID VARCHAR(9) NOT NULL
-  ,yearID   INTEGER  NOT NULL
-  ,stint    INTEGER  NOT NULL
-  ,teamID   VARCHAR(3) NOT NULL
-  ,lgID     VARCHAR(2) NOT NULL
-  ,W        INTEGER  NOT NULL
-  ,L        INTEGER  NOT NULL
-  ,G        INTEGER  NOT NULL
-  ,GS       INTEGER  NOT NULL
-  ,CG       INTEGER  NOT NULL
-  ,SHO      INTEGER  NOT NULL
-  ,SV       INTEGER  NOT NULL
-  ,IPouts   INTEGER  NOT NULL
-  ,H        INTEGER  NOT NULL
-  ,ER       INTEGER  NOT NULL
-  ,HR       INTEGER  NOT NULL
-  ,BB       INTEGER  NOT NULL
-  ,SO       INTEGER  NOT NULL
-  ,BAOpp    NUMERIC(5,3)
-  ,ERA      NUMERIC(5,2)
-  ,IBB      INTEGER 
-  ,WP       INTEGER  NOT NULL
-  ,HBP      INTEGER 
-  ,BK       INTEGER  NOT NULL
-  ,BFP      INTEGER 
-  ,GF       INTEGER  NOT NULL
-  ,R        INTEGER  NOT NULL
-  ,SH       INTEGER 
-  ,SF       INTEGER 
-  ,GIDP     INTEGER
-  ,PRIMARY KEY(playerID, yearID, stint, teamID) 
-);
-
-CREATE TABLE salaries(
-   yearID   INTEGER  NOT NULL
-  ,teamID   VARCHAR(3) NOT NULL
-  ,lgID     VARCHAR(2) NOT NULL
-  ,playerID VARCHAR(9) NOT NULL
-  ,salary   INTEGER  NOT NULL
-  ,PRIMARY KEY(yearID,teamID,playerID)
+create table teamseasonplayer (
+  playerId numeric(10,0),
+  teamId numeric(10,0),
+  year numeric(4,0),
+  primary key(playerId, teamId, year),
+  foreign key(playerId) references player on delete cascade,
+  foreign key(teamId, year) references teamseason on delete cascade
 );
