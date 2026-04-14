@@ -36,7 +36,7 @@ def create_stored_procedures():
         DROP PROCEDURE IF EXISTS get_pitching_stats;
         DROP PROCEDURE IF EXISTS retrieve_players;
         DROP PROCEDURE IF EXISTS add_positions;
-    """)
+    """, multi=True)
 
     # Create stored procedures
     # Copy from stored_procedures.sql
@@ -60,6 +60,8 @@ def create_stored_procedures():
                 FROM teams GROUP BY teamID
             ) agg ON t.teamID = agg.teamID;
         END;
+    """)
+    cursor.execute("""
         CREATE PROCEDURE get_player_season_stats()
         BEGIN
             SELECT b.playerID, b.yearID, b.teamID, b.lgID,
@@ -70,6 +72,8 @@ def create_stored_procedures():
                 AND b.yearID = s.yearID
             GROUP BY b.playerID, b.yearID, b.teamID, b.lgID;
         END;
+    """)
+    cursor.execute("""
         CREATE PROCEDURE get_batting_stats()
         BEGIN
             select playerID, yearID,
@@ -88,6 +92,8 @@ def create_stored_procedures():
             from batting
             group by playerID, yearID;
         END;
+    """)
+    cursor.execute("""
         CREATE PROCEDURE get_fielding_stats()
         BEGIN
             SELECT playerID, yearID,
@@ -101,6 +107,8 @@ def create_stored_procedures():
             FROM fielding
             GROUP BY playerID, yearID;
         END;
+    """)
+    cursor.execute("""
         CREATE PROCEDURE get_pitching_stats()
         BEGIN
             select playerID, yearID,
@@ -118,6 +126,8 @@ def create_stored_procedures():
             from pitching 
             group by playerID, yearID;
         END;
+    """)
+    cursor.execute("""
         CREATE PROCEDURE retrieve_players()
         BEGIN
             SELECT  playerId, 
@@ -139,6 +149,8 @@ def create_stored_procedures():
                     finalGame 
             FROM people;
         END;
+    """)
+    cursor.execute("""
         CREATE PROCEDURE add_positions()
         BEGIN
             SELECT DISTINCT playerID, POS FROM fielding;
@@ -435,7 +447,7 @@ def retrieve_teams():
                 wins=row['wins'],
                 losses=row['losses'],
                 rank=row['rank'],
-                attendance=row['attendance']
+                totalAttendance=row['attendance']
             )
             team_seasons[(tid, row['yearID'])] = ts
 
