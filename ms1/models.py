@@ -5,12 +5,9 @@ class Team(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50, null=False)
     league = models.CharField(max_length=2, null=False)
-    yearFounded = models.IntegerField(null=True) # fixme: numeric(4,0)
-    yearLast = models.IntegerField(null=True) # fixme: numeric(4,0)
+    yearFounded = models.IntegerField(null=True) 
+    yearLast = models.IntegerField(null=True) 
 
-
-    # maybe not necessary
-    # team_code = models.CharField(max_length=3, unique=True)
     class Meta:
         db_table = "team"
 
@@ -18,12 +15,12 @@ class TeamSeason(models.Model):
     id = models.AutoField(primary_key=True)
     team = models.ForeignKey(Team, on_delete=models.CASCADE, related_name='seasons')
 
-    year = models.IntegerField() #numeric(4,0)
-    gamesPlayed = models.IntegerField() #numeric(3,0)
-    wins = models.IntegerField() #numeric(4,0)
-    losses = models.IntegerField() #numeric(4,0)
+    year = models.IntegerField() 
+    gamesPlayed = models.IntegerField()
+    wins = models.IntegerField() 
+    losses = models.IntegerField() 
     rank = models.IntegerField()
-    attendance = models.IntegerField(null=True)
+    totalAttendance = models.IntegerField(null=True)
 
     class Meta:
         db_table = "team_season"
@@ -50,7 +47,7 @@ class Player(models.Model):
 
     positions = models.ManyToManyField('Position')
     team_seasons = models.ManyToManyField('TeamSeason', related_name='players')
-    
+
     class Meta:
         db_table = "player"
         unique_together = ('name', 'birthdate')

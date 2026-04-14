@@ -1,15 +1,21 @@
 CREATE PROCEDURE get_team_data()
 BEGIN
-    SELECT t.*, latest.latestName
+    SELECT t.teamID, t.yearID,
+        t.G gamesPlayed, t.W wins, t.L losses,
+        t.teamRank rank, t.attendance,
+        latest.latestName, latest.latestLeague,
+        agg.yearFounded, agg.yearLast
     FROM teams t
-    INNER JOIN (
-        SELECT teamID, name AS latestName
+    JOIN (
+        SELECT teamID, name latestName, lgID latestLeague
         FROM teams t2
-        WHERE yearID = (
-            SELECT MAX(yearID) FROM teams WHERE teamID = t2.teamID
-        )
-        GROUP BY teamID, name
-    ) AS latest ON t.teamID = latest.teamID;
+        WHERE yearID = (SELECT MAX(yearID) FROM teams WHERE teamID = t2.teamID)
+        GROUP BY teamID, name, lgID
+    ) latest ON t.teamID = latest.teamID
+    JOIN (
+        SELECT teamID, MIN(yearID) yearFounded, MAX(yearID) yearLast
+        FROM teams GROUP BY teamID
+    ) agg ON t.teamID = agg.teamID;
 END;
 
 CREATE PROCEDURE get_player_season_stats()
@@ -99,4 +105,4 @@ END;
 CREATE PROCEDURE add_positions()
 BEGIN
     SELECT DISTINCT playerID, POS FROM fielding;
-END;    
+END;
