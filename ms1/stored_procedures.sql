@@ -1,19 +1,19 @@
 CREATE PROCEDURE get_team_data()
 BEGIN
     SELECT t.teamID, t.yearID,
-        t.G gamesPlayed, t.W wins, t.L losses,
-        t.teamRank rank, t.attendance,
+        t.G as gamesPlayed, t.W as wins, t.L as losses,
+        t.teamRank as teamRank, t.attendance,
         latest.latestName, latest.latestLeague,
         agg.yearFounded, agg.yearLast
     FROM teams t
     JOIN (
-        SELECT teamID, name latestName, lgID latestLeague
-        FROM teams t2
+        SELECT teamID, name as latestName, lgID as latestLeague
+        FROM teams as t2
         WHERE yearID = (SELECT MAX(yearID) FROM teams WHERE teamID = t2.teamID)
         GROUP BY teamID, name, lgID
     ) latest ON t.teamID = latest.teamID
     JOIN (
-        SELECT teamID, MIN(yearID) yearFounded, MAX(yearID) yearLast
+        SELECT teamID, MIN(yearID) as yearFounded, MAX(yearID) as yearLast
         FROM teams GROUP BY teamID
     ) agg ON t.teamID = agg.teamID;
 END;
