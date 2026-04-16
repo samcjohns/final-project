@@ -2,7 +2,7 @@ from django.db import models
 
 # [Sam Johns] Milestone 1: Added Team and Teamseason models
 class Team(models.Model):
-    id = models.AutoField(primary_key=True)
+    team_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50, null=False)
     league = models.CharField(max_length=2, null=False)
     yearFounded = models.IntegerField(null=True) 

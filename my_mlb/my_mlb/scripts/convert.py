@@ -43,7 +43,7 @@ def create_stored_procedures():
         BEGIN
             SELECT t.teamID, t.yearID,
                 t.G as gamesPlayed, t.W as wins, t.L as losses,
-                t.teamRank as rank, t.attendance,
+                t.teamRank as teamRank, t.attendance,
                 latest.latestName, latest.latestLeague,
                 agg.yearFounded, agg.yearLast
             FROM teams t
@@ -424,8 +424,11 @@ def add_pitching_stats(players):
 def retrieve_teams():
     conn = connect_to_original_db()
     cursor = conn.cursor(dictionary=True)
+
+    # Call stored procedure
     cursor.callproc('get_team_data')
 
+    # Fill both teams and teamseason models
     teams = {}
     team_seasons = {}
     for result in cursor.stored_results():
@@ -444,7 +447,7 @@ def retrieve_teams():
                 gamesPlayed=row['gamesPlayed'],
                 wins=row['wins'],
                 losses=row['losses'],
-                rank=row['rank'],
+                rank=row['teamRank'],
                 totalAttendance=row['attendance']
             )
             team_seasons[(tid, row['yearID'])] = ts
