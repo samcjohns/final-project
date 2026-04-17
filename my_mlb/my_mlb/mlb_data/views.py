@@ -2,7 +2,8 @@ from django.http import HttpResponse
 from django.template import loader
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Player#, Team, TeamSeason
+from .models import Player, Team, TeamSeason
+
 # Create your views here.
 # Home page - Select team or player search
 def mlb_data(request):
