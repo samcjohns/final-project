@@ -14,8 +14,8 @@
             </tr>
             {% for team in teams %}
                 <tr>
-                    <td>{{ team.team_id }}</td>
-                    <td><a href="{% url 'team_details' team.team_id %}">{{ team.name }}</a></td>
+                    <td>{{ team.id }}</td>
+                    <td><a href="{% url 'team_details' team.id %}">{{ team.name }}</a></td>
                     <td>{{ team.league }}</td>
                     <td>{{ team.yearFounded }}</td>
                     <td>{{ team.yearLast }}</td>
