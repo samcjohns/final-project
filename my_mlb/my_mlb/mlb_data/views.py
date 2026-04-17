@@ -66,7 +66,7 @@ def team_search_results(request):
 # # Team details page
 @csrf_exempt
 def team_details(request, team_id):
-    team = Team.objects.get(team_id=team_id)
+    team = Team.objects.get(id=team_id)
     template = loader.get_template('team_details.html')
     context = {
         'team': team,
