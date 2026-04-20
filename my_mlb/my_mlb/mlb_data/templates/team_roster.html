@@ -16,13 +16,13 @@
               <a href="{% url 'player_details' entry.player.player_id %}">{{ entry.player.name }}</a>
             </td>
             <td align="right">
-              {{ entry.player_season.games_played|default:"—" }}
+              {{ entry.player_season.games_played|default:"0" }}
             </td>
             <td align="right">
               {% if entry.player_season and entry.player_season.salary %}
                 ${{ entry.player_season.salary }}
               {% else %}
-                —
+                $0.00
               {% endif %}
             </td>
           </tr>
