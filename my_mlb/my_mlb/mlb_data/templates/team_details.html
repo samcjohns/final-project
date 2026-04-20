@@ -25,6 +25,7 @@
                     <th>Year</th>
                     <th>Games Played</th>
                     <th>Roster</th>
+                    <th>Payroll</th>
                     <th>Wins</th>
                     <th>Losses</th>
                     <th>Rank</th>
@@ -32,19 +33,22 @@
                 </tr>
             </thead>
             <tbody>
-                {% for team_season in team_seasons %}
+                {% for tsd in team_seasons_data %}
                     <tr>
-                        <td align="right">{{ team_season.year }}</td>
-                        <td align="right">{{ team_season.gamesPlayed }}</td>
+                        <td align="right">{{ tsd.team_season.year }}</td>
+                        <td align="right">{{ tsd.team_season.gamesPlayed }}</td>
                         <td align="center">
-                            {% for player in team_season.roster.all %}
-                                <a href="{% url 'team_roster' team.id %}">Roster</a>{% if not forloop.last %}, {% endif %}
+                            {% for entry in tsd.roster %}
+                                {% if entry.player %}
+                                    <a href="{% url 'player_details' entry.player.player_id %}">{{ entry.player.name }}</a>{% if not forloop.last %}, {% endif %}
+                                {% endif %}
                             {% endfor %}
                         </td>
-                        <td align="right">{{ team_season.wins }}</td>
-                        <td align="right">{{ team_season.losses }}</td>
-                        <td align="right">{{ team_season.rank }}</td>
-                        <td align="right">{{ team_season.totalAttendance }}</td>
+                        <td align="right">${{ tsd.payroll }}</td>
+                        <td align="right">{{ tsd.team_season.wins }}</td>
+                        <td align="right">{{ tsd.team_season.losses }}</td>
+                        <td align="right">{{ tsd.team_season.rank }}</td>
+                        <td align="right">{{ tsd.team_season.totalAttendance }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
