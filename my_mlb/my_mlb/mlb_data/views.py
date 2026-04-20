@@ -75,14 +75,6 @@ def team_details(request, team_id):
     for ts in team_seasons:
         # total payroll for this team season
         total = PlayerSeason.objects.filter(year=ts.year, player__in=ts.players.all()).aggregate(total=Sum('salary'))['total'] or Decimal('0.00')
-
-        # optional: build roster entries with each player's PlayerSeason (if needed)
-        player_seasons = PlayerSeason.objects.filter(year=ts.year, player__in=ts.players.all()).select_related('player')
-        ps_by_player_id = {ps.player.player_id: ps for ps in player_seasons}
-        roster = []
-        for p in ts.players.all():
-            roster.append({'player': p, 'player_season': ps_by_player_id.get(p.player_id)})
-
         team_seasons_data.append({'team_season': ts, 'roster': roster, 'payroll': total})
 
     context = {
