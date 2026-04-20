@@ -68,19 +68,25 @@ def team_search_results(request):
 # # Team details page
 @csrf_exempt
 def team_details(request, team_id):
+    template = loader.get_template('team_details.html')
     team = Team.objects.get(id=team_id)
     team_seasons = team.seasons.all().prefetch_related('players')
     team_seasons_data = []
 
     for ts in team_seasons:
-        # total payroll for this team season
-        total = PlayerSeason.objects.filter(year=ts.year, player__in=ts.players.all()).aggregate(total=Sum('salary'))['total'] or Decimal('0.00')
+        players_qs = ts.players.all()
+        total = PlayerSeason.objects.filter(year=ts.year, player__in=players_qs).aggregate(total=Sum('salary'))['total'] or Decimal('0.00')
+
+        player_seasons = PlayerSeason.objects.filter(year=ts.year, player__in=players_qs).select_related('player')
+        ps_by_player_id = {ps.player.player_id: ps for ps in player_seasons}
+
+        roster = []
+        for p in players_qs:
+            roster.append({'player': p, 'player_season': ps_by_player_id.get(p.player_id)})
+
         team_seasons_data.append({'team_season': ts, 'roster': roster, 'payroll': total})
 
-    context = {
-        'team': team,
-        'team_seasons_data': team_seasons_data,
-    }
+    context = {'team': team, 'team_seasons_data': team_seasons_data}
     return HttpResponse(template.render(context, request))
 
 # # Team roster page
