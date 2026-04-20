@@ -63,9 +63,11 @@
                         <td align="right">{{ player_season.games_played }}</td>
                         <td align="right">${{ player_season.salary }}</td>
                         <td>
-                            {% if player_season.team %}
-                                <a href="{% url 'team_details' player_season.team.id %}">{{ player_season.team.name }}</a>
-                            {% endif %}
+                            {% for ts in player.team_seasons.all %}
+                                {% if ts.year == player_season.year %}
+                                <a href="{% url 'team_details' ts.team.id %}">{{ ts.team.name }}</a>{% if not forloop.last %}, {% endif %}
+                                {% endif %}
+                            {% endfor %}
                         </td>
                         <td align="right">{{ player_season.batting_stats.hits }}</td>
                         <td align="right">{{ player_season.batting_stats.at_bats }}</td>
