@@ -94,7 +94,12 @@ def team_roster(request, team_id, season_id):
     template = loader.get_template('team_roster.html')
     team = Team.objects.get(id=team_id)
     team_season = TeamSeason.objects.get(id=season_id, team=team)
+
     players_qs = team_season.players.all()
+    total = PlayerSeason.objects.filter(year=team_season.year, player__in=players_qs).aggregate(total=Sum('salary'))['total'] or Decimal('0.00')
+
+    # attach payroll so template can use `team_season.payroll`
+    team_season.payroll = total
 
     player_seasons = PlayerSeason.objects.filter(year=team_season.year, player__in=players_qs).select_related('player')
     ps_by_player_id = {ps.player.player_id: ps for ps in player_seasons}
