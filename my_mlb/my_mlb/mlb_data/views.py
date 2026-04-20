@@ -65,15 +65,43 @@ def team_search_results(request):
 
 # # Team details page
 @csrf_exempt
+from decimal import Decimal
+from django.db.models import Sum
+from .models import PlayerSeason
+
 def team_details(request, team_id):
     team = Team.objects.get(id=team_id)
-    template = loader.get_template('team_details.html')
+    team_seasons = team.seasons.all().prefetch_related('players')
+    team_seasons_data = []
+
+    for ts in team_seasons:
+        # total payroll for this team season
+        total = PlayerSeason.objects.filter(year=ts.year, player__in=ts.players.all()).aggregate(total=Sum('salary'))['total'] or Decimal('0.00')
+
+        # optional: build roster entries with each player's PlayerSeason (if needed)
+        player_seasons = PlayerSeason.objects.filter(year=ts.year, player__in=ts.players.all()).select_related('player')
+        ps_by_player_id = {ps.player.player_id: ps for ps in player_seasons}
+        roster = []
+        for p in ts.players.all():
+            roster.append({'player': p, 'player_season': ps_by_player_id.get(p.player_id)})
+
+        team_seasons_data.append({'team_season': ts, 'roster': roster, 'payroll': total})
+
     context = {
         'team': team,
-        'team_seasons': team.seasons.all()
+        'team_seasons_data': team_seasons_data,
     }
     return HttpResponse(template.render(context, request))
 
 # # Team roster page
+def team_roster(request, team_id):
+    team = Team.objects.get(id=team_id)
+    template = loader.get_template('roster.html')
+    context = {
+        'team': team,
+        'roster': team.seasons.first().roster.all() if team.seasons.exists() else []
+    }
+    return HttpResponse(template.render(context, request))
+
 #FIXME
 

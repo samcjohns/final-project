@@ -24,6 +24,7 @@
                 <tr>
                     <th>Year</th>
                     <th>Games Played</th>
+                    <th>Roster</th>
                     <th>Wins</th>
                     <th>Losses</th>
                     <th>Rank</th>
@@ -35,6 +36,11 @@
                     <tr>
                         <td align="right">{{ team_season.year }}</td>
                         <td align="right">{{ team_season.gamesPlayed }}</td>
+                        <td align="center">
+                            {% for player in team_season.roster.all %}
+                                <a href="{% url 'team_roster' team.id %}">Roster</a>{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
                         <td align="right">{{ team_season.wins }}</td>
                         <td align="right">{{ team_season.losses }}</td>
                         <td align="right">{{ team_season.rank }}</td>
