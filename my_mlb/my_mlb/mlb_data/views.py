@@ -90,12 +90,23 @@ def team_details(request, team_id):
     return HttpResponse(template.render(context, request))
 
 # # Team roster page
-def team_roster(request, team_id):
+def team_roster(request, team_id, season_id):
+    template = loader.get_template('team_roster.html')
     team = Team.objects.get(id=team_id)
-    template = loader.get_template('roster.html')
+    team_season = TeamSeason.objects.get(id=season_id, team=team)
+    players_qs = team_season.players.all()
+
+    player_seasons = PlayerSeason.objects.filter(year=team_season.year, player__in=players_qs).select_related('player')
+    ps_by_player_id = {ps.player.player_id: ps for ps in player_seasons}
+
+    roster = []
+    for p in players_qs:
+        roster.append({'player': p, 'player_season': ps_by_player_id.get(p.player_id)})
+
     context = {
         'team': team,
-        'roster': team.seasons.first().roster.all() if team.seasons.exists() else []
+        'team_season': team_season,
+        'roster': roster,
     }
     return HttpResponse(template.render(context, request))
 

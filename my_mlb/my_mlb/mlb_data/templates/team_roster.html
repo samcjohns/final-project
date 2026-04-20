@@ -1,48 +1,37 @@
 <!DOCTYPE html>
 {% load filters %}
 <html>
-    <title>MLB Data - {{team.name}} Roster</title>
-    <body>
-        <h1>MLB Team Roster - {{team.name}}</h1>
-        <table border="1">
-            <tr>
-                <th>Name</th>
-                <th>League</th>
-                <th>Year Founded</th>
-                <th>Player Payroll</th>
-            </tr>
-            <tr>
-                <td align="center">{{ team.name }}</td>
-                <td align="center">{{ team.league }}</td>
-                <td align="center">{{ team.yearFounded }}</td>
-                <td align="center"></td> 
-            </tr>
-        </table>
-        <br/>
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Games Played</th>
-                    <th>Salary</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for tsd in team_seasons_data %}
-                    <tr>
-                        <td align="center">
-                        {% for entry in tsd.roster %}
-                            <a href="{% url 'player_details' entry.player.player_id %}">{{ entry.player.name }}</a>{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                        </td>
-                        <td align="right">{{ tsd.team_season.gamesPlayed }}</td>
-                        <td align="right">${{ tsd.payroll }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <br/>
-        <a href="{% url 'team_search' %}">Back to Team Search</a> <br/>
-        <a href="{% url 'mlb_data' %}">Back to Home</a>
-    </body>
+  <title>MLB Data - {{ team.name }} Roster ({{ team_season.year }})</title>
+  <body>
+    <h1>{{ team.name }} — Roster ({{ team_season.year }})</h1>
+
+    <table border="1">
+      <thead>
+        <tr><th>Name</th><th>Games Played</th><th>Salary</th></tr>
+      </thead>
+      <tbody>
+        {% for entry in roster %}
+          <tr>
+            <td>
+              <a href="{% url 'player_details' entry.player.player_id %}">{{ entry.player.name }}</a>
+            </td>
+            <td align="right">
+              {{ entry.player_season.games_played|default:"—" }}
+            </td>
+            <td align="right">
+              {% if entry.player_season and entry.player_season.salary %}
+                ${{ entry.player_season.salary }}
+              {% else %}
+                —
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <br/>
+    <a href="{% url 'team_details' team.id %}">Back to Team Details</a><br/>
+    <a href="{% url 'mlb_data' %}">Back to Home</a>
+  </body>
 </html>

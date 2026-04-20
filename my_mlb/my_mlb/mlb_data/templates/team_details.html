@@ -38,11 +38,7 @@
                         <td align="right">{{ tsd.team_season.year }}</td>
                         <td align="right">{{ tsd.team_season.gamesPlayed }}</td>
                         <td align="center">
-                            {% for entry in tsd.roster %}
-                                {% if entry.player %}
-                                    <a href="{% url 'player_details' entry.player.player_id %}">{{ entry.player.name }}</a>{% if not forloop.last %}, {% endif %}
-                                {% endif %}
-                            {% endfor %}
+                            <a href="{% url 'team_roster' team.id tsd.team_season.id %}">Roster</a>
                         </td>
                         <td align="right">${{ tsd.payroll }}</td>
                         <td align="right">{{ tsd.team_season.wins }}</td>
