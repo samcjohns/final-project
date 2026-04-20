@@ -62,7 +62,11 @@
                         <td>{{ player_season.year }}</td>
                         <td align="right">{{ player_season.games_played }}</td>
                         <td align="right">${{ player_season.salary }}</td>
-                        <td> </td>
+                        <td>
+                            {% if player_season.team %}
+                                <a href="{% url 'team_details' player_season.team.id %}">{{ player_season.team.name }}</a>
+                            {% endif %}
+                        </td>
                         <td align="right">{{ player_season.batting_stats.hits }}</td>
                         <td align="right">{{ player_season.batting_stats.at_bats }}</td>
                         <td align="right">{{ player_season.batting_stats.hits|divide:player_season.batting_stats.at_bats|floatformat:3 }}</td>
