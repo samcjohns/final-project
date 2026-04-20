@@ -1,8 +1,10 @@
 from django.http import HttpResponse
 from django.template import loader
 from django.views.decorators.csrf import csrf_exempt
+from decimal import Decimal
+from django.db.models import Sum
 
-from .models import Player, Team, TeamSeason
+from .models import Player, Team, TeamSeason, PlayerSeason
 
 # Create your views here.
 # Home page - Select team or player search
@@ -65,10 +67,6 @@ def team_search_results(request):
 
 # # Team details page
 @csrf_exempt
-from decimal import Decimal
-from django.db.models import Sum
-from .models import PlayerSeason
-
 def team_details(request, team_id):
     team = Team.objects.get(id=team_id)
     team_seasons = team.seasons.all().prefetch_related('players')
