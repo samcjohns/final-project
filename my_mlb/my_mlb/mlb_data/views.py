@@ -44,13 +44,13 @@ def player_details(request, player_id):
     }
     return HttpResponse(template.render(context, request))
 
-# # Team search page
+# Team search page
 @csrf_exempt
 def team_search(request):
     template = loader.get_template('team_search.html')
     return HttpResponse(template.render())
 
-# # Team search results page
+# Team search results page
 @csrf_exempt
 def team_search_results(request): 
     q_name = request.POST.get('q_name')
@@ -65,7 +65,7 @@ def team_search_results(request):
     }
     return HttpResponse(template.render(context, request))
 
-# # Team details page
+# Team details page
 @csrf_exempt
 def team_details(request, team_id):
     template = loader.get_template('team_details.html')
@@ -89,7 +89,7 @@ def team_details(request, team_id):
     context = {'team': team, 'team_seasons_data': team_seasons_data}
     return HttpResponse(template.render(context, request))
 
-# # Team roster page
+# Team roster page
 def team_roster(request, team_id, season_id):
     template = loader.get_template('team_roster.html')
     team = Team.objects.get(id=team_id)
@@ -114,6 +114,3 @@ def team_roster(request, team_id, season_id):
         'roster': roster,
     }
     return HttpResponse(template.render(context, request))
-
-#FIXME
-
