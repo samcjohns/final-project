@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html>
-    <title>MLB Data - Player Search</title>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>MLB Data - Player Search</title>
+        <link rel="stylesheet" href="{% static 'mlb_data/css/style.css' %}">
+    </head>
     <body>
         <h1>MLB - Player Search</h1>
         <form action="{% url 'player_search_results' %}" method="post">

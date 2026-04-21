@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 {% load filters %}
 <html>
-  <title>MLB Data - {{ team.name }} Roster ({{ team_season.year }})</title>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <title>MLB Data - {{ team.name }} Roster ({{ team_season.year }})</title>
+      <link rel="stylesheet" href="{% static 'mlb_data/css/style.css' %}">
+    </head>
   <body>
     <h1>{{ team.name }} — Roster ({{ team_season.year }})</h1>
     <table border="1">
