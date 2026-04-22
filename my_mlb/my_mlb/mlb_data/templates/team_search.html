@@ -7,14 +7,19 @@
         <title>MLB Data - Team Search</title>
         <link rel="stylesheet" href="{% static 'mlb_data/css/style.css' %}">
     </head>
-    <title>MLB Data - Team Search</title>
     <body>
-        <h1>MLB - Team Search</h1>
-        <form action="{% url 'team_search_results' %}" method="post">
-            <input type="text" name="q_name" placeholder="Team Name">
-            <input type="submit" value="Search">
-        </form>
-        <br/>
-        <a href="{% url 'mlb_data' %}">Back to Home</a>
+        <header class="site-header">
+            <span class="site-title">MLB Data</span>
+        </header>
+        <div class="container">
+            <h1>Team Search</h1>
+            <form class="search-form" action="{% url 'team_search_results' %}" method="post">
+                <input type="text" name="q_name" placeholder="Team Name">
+                <input type="submit" value="Search">
+            </form>
+            <div class="nav-links">
+                <a href="{% url 'mlb_data' %}">&#8592; Back to Home</a>
+            </div>
+        </div>
     </body>
 </html>

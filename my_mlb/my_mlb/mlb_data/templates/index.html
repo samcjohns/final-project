@@ -8,11 +8,15 @@
         <link rel="stylesheet" href="{% static 'mlb_data/css/style.css' %}">
     </head>
     <body>
-        <h1 align="center">CU CS-3610 MLB Data</h1>
-        <p align="center">
-        <img src="{% static 'mlb_data/images/mlb-logo.jpg' %}" alt="MLB Logo">
-        <br/>
-        <a href="{% url 'player_search' %}">Player Search</a> <br/>
-        <a href="{% url 'team_search' %}">Team Search</a> <br/>
+        <header class="site-header">
+            <span class="site-title">CU CS-3610 MLB Data</span>
+        </header>
+        <div class="container">
+            <img class="logo" src="{% static 'mlb_data/images/mlb-logo.jpg' %}" alt="MLB Logo">
+            <div class="links">
+                <a href="{% url 'player_search' %}">Player Search</a>
+                <a href="{% url 'team_search' %}">Team Search</a>
+            </div>
+        </div>
     </body>
 </html>
