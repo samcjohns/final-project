@@ -56,7 +56,9 @@ a {
   color: var(--accent);
   text-decoration: none;
 }
-a:hover { text-decoration: underline; }
+a:hover { 
+  text-decoration: underline; 
+}
 
 .links {
   display: flex;
@@ -101,6 +103,7 @@ table {
   font-size: 0.92rem;
 }
 
+/* Tables */
 th {
   background: var(--accent);
   color: #fff;
@@ -114,13 +117,23 @@ td {
   border-bottom: 1px solid var(--border);
 }
 
-tr:last-child td { border-bottom: none; }
+tr:last-child td { 
+  border-bottom: none; 
+}
 
-tbody tr:nth-child(even) { background: var(--accent-light); }
+/* Pattern on rows for readability */
+tbody tr:nth-child(even) { 
+  background: var(--accent-light); 
+}
 
-tbody tr:hover { background: #dce6f4; }
+/* Hover effect on rows */
+tbody tr:hover { 
+  background: #dce6f4; 
+}
 
-td.num, th.num { text-align: right; }
+td.num, th.num { 
+  text-align: right; 
+}
 
 .section-label {
   font-weight: 600;
